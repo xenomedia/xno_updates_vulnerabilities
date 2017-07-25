@@ -3,47 +3,47 @@
 /**
  * This script checks for core, plugin, themes updates and vulnerabilties.
  *
- * Vulnerabilities are check agains https://wpvulndb.com/ and Change log in
- * Wordpress plugin.
+ * Vulnerabilities are checked against https://wpvulndb.com/ and Change log in
+ * WordPress plugin.
  *
  * This script forces the checks, does not depend on the wp_cron.
  *
- * To properly functions user the following env vars :
- *    XCHANNELS - a valid json string that holds the slack channels to send
- *				  notifications.
- *				  info channel(s) -  will be user to send any information.
- *				  fire channel(s) -  will be user to send any vulnerability.
+ * To properly functions user the following env vars:
+ * XCHANNELS - a valid json string that holds the slack channels to send
+ * notifications.
+ * info channel(s) -  will be user to send any information.
+ * fire channel(s) -  will be user to send any vulnerability.
  *
- *				  Example:
- *    					export XCHANNELS='{"info":["notification-channel"],"fire":["emergency-channel"]}'
+ * Example:
+ * export XCHANNELS='{"info":["notification-channel"],"fire":["emergency-channel"]}'
  *
- *    XNOTIFY_USERS - A valid json string that will hold slack user id's slack of
- *				users that need to be notified.
+ * XNOTIFY_USERS - A valid json string that will hold slack user id's slack of
+ * users that need to be notified.
  *
- *				Example:
- *					export XNOTIFY='{"info":["user1"],"fire":["user1","user2"]}'
+ * Example:
+ * export XNOTIFY='{"info":["user1"],"fire":["user1","user2"]}'
  *
- * 	  XSLACK - Webhook **FULL** URL. Only uses one webhook to send to different channels.
+ * XSLACK - Webhook **FULL** URL. Only uses one webhook to send to different channels.
  *
- *				Example:
- *					export XSLACK='https://hooks.slack.com/services/XXXX/XXXX/XXXX'
+ * Example:
+ * export XSLACK='https://hooks.slack.com/services/XXXX/XXXX/XXXX'
  *
- * 	  XJIRA - Jira: jenkins Build id, project, labels and host.
- *			  if not progress_transision_id set then default will be 4.
+ * XJIRA - Jira: jenkins Build id, project, labels and host.
+ * if not progress_transision_id set then default will be 4.
  *
- *				Example:
- *					export XJIRA='{"project":"XXX",\
- * 					"labels":["WORDPRESS","PLUGINS","UPDATE"],\
- * 					"server":"http://myjira.com",
- *					"progress_transition_id":"4"
- * 					"user":"XXX"
- * 					"pwd":"XXX"
- *					"assignee":"admin"}'
+ * Example:
+ * export XJIRA='{"project":"XXX",\
+ * "labels":["WordPress","Plugins","Update"],\
+ * "server":"http://myjira.com",
+ * "progress_transition_id":"4"
+ * "user":"XXX"
+ * "pwd":"XXX"
+ * "assignee":"admin"}'
  *
- *    XTOKEN -  An md5 encripted string of the wp prefix to verify that we can safetly run this script.
+ * XTOKEN - An md5 encripted string of the wp prefix to verify that we can safetly run this script.
  *
- *				Example:
- *					export XTOKEN=`echo -n "wp_prefix_" | openssl md5 | sed 's/^.* //'`
+ * Example:
+ * export XTOKEN=`echo -n "wp_prefix_" | openssl md5 | sed 's/^.* //'`
  *
  *
  * The program will load the wp site environment.
@@ -72,7 +72,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 global $wpdb;
 $token = getenv( 'XTOKEN', true ) ? : false;
 
-if (  md5( $wpdb->prefix ) !== $token ) {
+if ( md5( $wpdb->prefix ) !== $token ) {
 	exit( 'Not authorize, not a valid token!' );
 }
 
@@ -80,7 +80,7 @@ if (  md5( $wpdb->prefix ) !== $token ) {
 new XNO_Updates_Vulnerabilities();
 
 /**
- * Verify wordpress updates and check for vulnerabilities
+ * Verify WordPress updates and check for vulnerabilities
  */
 class XNO_Updates_Vulnerabilities {
 	/**
@@ -130,7 +130,7 @@ class XNO_Updates_Vulnerabilities {
 	 */
 	public function __construct() {
 
-		// Comunnicates with Slack
+		// Communicates with Slack.
 		$this->slack = new XNO_Slack();
 
 		// Commmunicates with Jira.
@@ -159,7 +159,7 @@ class XNO_Updates_Vulnerabilities {
 	private function init() {
 		// Wpvulndb API site to check for vulnerabilities.
 		$this->wpvulndb_url = array(
-			'core' 	  => 'https://wpvulndb.com/api/v2/wordpresses/',
+			'core' => 'https://wpvulndb.com/api/v2/wordpresses/',
 			'plugins' => 'https://wpvulndb.com/api/v2/plugins/',
 			'themes' => 'https://wpvulndb.com/api/v2/themes/',
 		);
@@ -205,8 +205,8 @@ class XNO_Updates_Vulnerabilities {
 	/**
 	 * Look up for strings that are considered as vulnerabilities in plugin description.
 	 *
-	 * @param string $description	The plugin updates description.
-	 * @return boolean $found	The response from the URL; null if empty.
+	 * @param string $description The plugin updates description.
+	 * @return boolean $found The response from the URL; null if empty.
 	 */
 	private function check_in_description( $description ) {
 		$array = array(
@@ -244,12 +244,12 @@ class XNO_Updates_Vulnerabilities {
 	/**
 	 * Calls wpvulndb API o check for vulnerabilities in its db.
 	 *
-	 * @param string $url 	The URL of the core/plugin/theme in wpvulndb.
-	 * @param string $ver 	slug of the core/plugin/theme in wpvulndb.
+	 * @param string $url The URL of the core/plugin/theme in wpvulndb.
+	 * @param string $ver slug of the core/plugin/theme in wpvulndb.
 	 * @return boolean $vulnerable if found in wpvulndb api db.
 	 */
 	private function check_with_wpvulndb( $url = null, $ver = null ) {
-
+		return false;
 		// cURL call.
 		$response = $this->curl( $url );
 
@@ -260,7 +260,6 @@ class XNO_Updates_Vulnerabilities {
 		$json = json_decode( $response );
 
 		$vulnerable = false;
-
 		// Loops in API response to check for vulnerabilities reported.
 		foreach ( $json as $vul => $key ) {
 			$count = count( $key->vulnerabilities );
@@ -303,7 +302,7 @@ class XNO_Updates_Vulnerabilities {
 			$ver_int = filter_var( $wp_version, FILTER_SANITIZE_NUMBER_INT, $wp_version );
 
 			// Checks for vulnerabilties reported in wpvulndb.
-			$vulnerable = $this->check_with_wpvulndb( $this->wpvulndb_url['core'] . $ver_int );
+			$vulnerable = $this->check_with_wpvulndb( $this->wpvulndb_url['core'], $ver_int );
 
 			$fields = array();
 
@@ -316,16 +315,15 @@ class XNO_Updates_Vulnerabilities {
 
 			} else {
 				array_push( $fields, [
-						'title' => sprintf( 'Current Version' ),
-						'value' => $wp_version,
-						'short' => true,
-					],
-					[
-						'title' => sprintf( 'To' ),
-						'value' => $new_core_ver,
-						'short' => true,
-					]
-				);
+					'title' => sprintf( 'Current Version' ),
+					'value' => $wp_version,
+					'short' => true,
+				],
+				[
+					'title' => sprintf( 'To' ),
+					'value' => $new_core_ver,
+					'short' => true,
+				]);
 			}
 
 			$slack = [
@@ -459,9 +457,9 @@ class XNO_Updates_Vulnerabilities {
 					$emotico = ':warning:';
 					if ( count( $wpvulndb_vul ) || count( $changelog_vul ) ) {
 
-						$plugins_vul++; // how many plugins have vulnerabilities.
+						$plugins_vul++; // How many plugins have vulnerabilities.
 
-						$this_plugin_critical = 'CRITICAL!'; //is this plugin vulnerable?
+						$this_plugin_critical = 'CRITICAL!'; // Is this plugin vulnerable?
 
 						$emotico = ':bangbang:';
 
@@ -642,7 +640,7 @@ class XNO_Updates_Vulnerabilities {
 
 				$this->slack->talk( $slack );
 
-				// Marks site as vulnerable
+				// Marks site as vulnerable.
 				$this->site_is_vulnerable = $slack['vulnerable'];
 
 				return true;
@@ -782,8 +780,8 @@ class XNO_Slack {
 		if ( ! empty( $args['fields'] ) ) {
 			$the_attachments = array(
 				[
-					'fallback' 	=> get_bloginfo( 'url' ),
-					'color' 	=> $webhook->the_color,
+					'fallback' => get_bloginfo( 'url' ),
+					'color' => $webhook->the_color,
 					'fields' => $args['fields'],
 				],
 			);
@@ -865,10 +863,10 @@ class XNO_Jira {
 	/**
 	 * Open Jira task and start progress.
 	 *
-	 * @param   boolean $vulnerable - If the site is vulnerable then the priority
-	 *			will be the highest oneotherwise medium.
-	 * @return  string  $response - APi response.
-	 * @since   1.0.0
+	 * @param boolean $vulnerable - If the site is vulnerable then the priority
+	 * will be the highest oneotherwise medium.
+	 * @return string $response - APi response.
+	 * @since 1.0.0
 	 */
 	public function open_task( $vulnerable ) {
 
@@ -925,7 +923,7 @@ class XNO_Jira {
 	}
 
 	/**
-	 * cURL function to all Jira rest API.
+	 * The cURL function to all Jira rest API.
 	 * TODO conver to wp.
 	 *
 	 * @param $url string - jira rest api.
@@ -942,14 +940,13 @@ class XNO_Jira {
 		curl_setopt( $ch, CURLOPT_POSTFIELDS, $data );
 		curl_setopt( $ch, CURLOPT_HTTPHEADER, array( 'Content-type: application/json' ) );
 		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
-		// curl_setopt( $ch, CURLOPT_VERBOSE, 1 );
 
 		$result = curl_exec( $ch );
 		$ch_error = curl_error( $ch );
 
 		if ( $ch_error ) {
-		    echo sprintf( 'cURL Error: %s', $ch_error );
-		    return false;
+			echo sprintf( 'cURL Error: %s', $ch_error );
+			return false;
 		}
 
 		curl_close( $ch );
